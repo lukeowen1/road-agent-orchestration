@@ -1,7 +1,7 @@
 # ROAD: Rapid Onboarding Agent for Developers
 ## Step 1: Evaluate whether a codebase is simple enough to be visualised by an LLM adhering to C4 Architecture diagram standards.
 
-A clean, modular tool that evaluates if a Python codebase is simple enough for AI-generated C4 architecture diagrams.
+A clean, modular tool that evaluates if a Python codebase is simple enough for AI-generated C4 architecture diagrams. 
 
 ## Project Structure
 
