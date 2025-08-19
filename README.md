@@ -10,19 +10,39 @@ codebase-evaluator/
 └── main.py         # Entry point 
 ```
 
-## Quick Start
+## Installation
 
-### 1. Install Dependencies
+- **Clone the repository via terminal**
+    ```sh
+    git clone https://github.com/lukeowen1/road-agent-orchestration.git
+    cd road-agent-orchestration
+    ```
+- **Use the terminal to create a virtual environment called venv**
+    ```sh
+    python -m venv venv
+    ```
+- **Activate the virtual environment**
+    ```sh
+    source venv/bin/activate 
+    ``` 
+- **Install pip / check the latest version is running**
+    ```sh
+    python3 -m pip install --upgrade pip`
+    python3 -m pip --version
+    ```
+- **Install external packages and libraries**
+    ```sh
+    pip install -r requirements.txt
+    ```
+- **Set OpenAI_API_KEY**
+    ```sh
+    export OPENAI_API_KEY="sk-..."
+    ```
+- **Run Evaluation**
+     ```sh
+     python3 main.py /path/to/your/codebase
+     ```
 
-```bash
-pip install langchain langchain-openai langgraph
-```
-
-### 2. Set OpenAI API Key
-
-```bash
-export OPENAI_API_KEY="sk-..."
-```
 
 ### 3. Run Evaluation
 
