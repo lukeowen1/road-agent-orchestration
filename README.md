@@ -43,13 +43,6 @@ codebase-evaluator/
      python3 main.py /path/to/your/codebase
      ```
 
-
-### 3. Run Evaluation
-
-```bash
-python main.py /path/to/your/python/codebase
-```
-
 ## Step 1: Evaluate whether a codebase is simple enough to be visualised by an LLM adhering to C4 Architecture diagram standards.
 
 Initial metrics gathered about the codebase using [AST](https://docs.python.org/3/library/ast.html) then an LLM call to evaluate whether the codebase is simple enough to be visualised.
