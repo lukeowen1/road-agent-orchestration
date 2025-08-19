@@ -43,19 +43,19 @@ def summary_node(state: WorkflowState) -> WorkflowState:
                     EVALUATION COMPLETE
 ═══════════════════════════════════════════════════════════════
 
-📁 Codebase: {state['codebase_path']}
+Codebase: {state['codebase_path']}
 
-📊 Metrics:
-   • Files: {metrics['files']}
-   • Lines: {metrics['lines']}
-   • Frameworks: {', '.join(metrics['frameworks']) if metrics['frameworks'] else 'None'}
+Metrics:
+• Files: {metrics['files']}
+• Lines: {metrics['lines']}
+• Frameworks: {', '.join(metrics['frameworks']) if metrics['frameworks'] else 'None'}
 
-🎯 Decision:
-   • Complexity: {decision.get('complexity_level', 'unknown').upper()}
-   • Score: {decision.get('complexity_score', 0):.1f}/10
-   • Can Generate C4: {'✅ YES' if decision.get('can_use_llm') else '❌ NO'}
+Decision:
+• Complexity: {decision.get('complexity_level', 'unknown').upper()}
+• Score: {decision.get('complexity_score', 0):.1f}/10
+• Can Generate C4: {'YES' if decision.get('can_use_llm') else 'NO'}
 
-📝 Reasoning:
+Reasoning:
 {decision.get('reasoning', 'No reasoning provided')}
 """
     

@@ -9,12 +9,12 @@ from openai import OpenAI
 # Make sure your API key is set
 api_key = os.getenv("OPENAI_API_KEY")
 if not api_key:
-    print("❌ Please set OPENAI_API_KEY environment variable")
+    print("Please set OPENAI_API_KEY environment variable")
     exit(1)
 
 client = OpenAI(api_key=api_key)
 
-print("🔍 Checking available models...\n")
+print("Checking available models...")
 
 # Common models to test
 models_to_test = [
@@ -38,21 +38,21 @@ for model in models_to_test:
             messages=[{"role": "user", "content": "Hi"}],
             max_tokens=1
         )
-        print(f"✅ {model}: Available")
+        print(f"{model}: Available")
         available_models.append(model)
     except Exception as e:
         if "model_not_found" in str(e):
-            print(f"❌ {model}: Not available")
+            print(f"{model}: Not available")
         else:
-            print(f"⚠️  {model}: Error - {str(e)[:50]}")
+            print(f"{model}: Error - {str(e)[:50]}")
 
 print("\n" + "="*50)
-print(f"📋 You have access to {len(available_models)} model(s):")
+print(f"You have access to {len(available_models)} model(s):")
 for model in available_models:
     print(f"   - {model}")
 
 if available_models:
-    print(f"\n💡 Recommended: Use '{available_models[0]}' for the evaluator")
-    print(f"\nRun with:\n   python run_evaluator.py ./your-project {available_models[0]}")
+    print(f"Recommended: Use '{available_models[0]}' for the evaluator")
+    print(f"Run with: python run_evaluator.py ./your-project {available_models[0]}")
 else:
-    print("\n❌ No models available. Please check your API key and billing.")
+    print("No models available. Please check your API key and billing.")
