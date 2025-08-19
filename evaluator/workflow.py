@@ -5,8 +5,8 @@ from typing import TypedDict, Dict, Any
 from langgraph.graph import StateGraph, END
 from langchain_openai import ChatOpenAI
 
-from codebase_analyser import PythonAnalyzer
-from codebase_evaluator import ComplexityEvaluator
+from evaluator.codebase_analyser import PythonAnalyser
+from evaluator.codebase_evaluator import ComplexityEvaluator
 
 
 class WorkflowState(TypedDict):
@@ -17,10 +17,10 @@ class WorkflowState(TypedDict):
     summary: str
 
 
-def analyze_node(state: WorkflowState) -> WorkflowState:
+def analyse_node(state: WorkflowState) -> WorkflowState:
     """Node 1: Analyze the codebase"""
-    analyzer = PythonAnalyzer()
-    state['analysis'] = analyzer.analyze_codebase(state['codebase_path'])
+    analyser = PythonAnalyser()
+    state['analysis'] = analyser.analyse_codebase(state['codebase_path'])
     return state
 
 
@@ -68,13 +68,13 @@ def create_workflow():
     workflow = StateGraph(WorkflowState)
     
     # Add nodes
-    workflow.add_node("analyze", analyze_node)
+    workflow.add_node("analyse", analyse_node)
     workflow.add_node("evaluate", evaluate_node)
     workflow.add_node("summary", summary_node)
     
     # Define flow
-    workflow.set_entry_point("analyze")
-    workflow.add_edge("analyze", "evaluate")
+    workflow.set_entry_point("analyse")
+    workflow.add_edge("analyse", "evaluate")
     workflow.add_edge("evaluate", "summary")
     workflow.add_edge("summary", END)
     

@@ -29,7 +29,7 @@ class CodebaseMetrics:
         }
 
 
-class PythonAnalyzer:
+class PythonAnalyser:
     """Analyzes Python codebases"""
     
     # Common Python frameworks
@@ -43,7 +43,7 @@ class PythonAnalyzer:
         'sqlalchemy': 'SQLAlchemy',
     }
     
-    def analyze_codebase(self, path: str) -> Dict:
+    def analyse_codebase(self, path: str) -> Dict:
         """
         Analyze a Python codebase and return metrics + structure
         
@@ -58,7 +58,7 @@ class PythonAnalyzer:
             raise ValueError(f"Path {path} does not exist")
         
         metrics = CodebaseMetrics()
-        structure = self._analyze_structure(base_path)
+        structure = self._analyse_structure(base_path)
         
         # Analyze all Python files
         for py_file in base_path.rglob('*.py'):
@@ -66,7 +66,7 @@ class PythonAnalyzer:
                 continue
                 
             metrics.file_count += 1
-            file_metrics = self._analyze_file(py_file)
+            file_metrics = self._analyse_file(py_file)
             
             metrics.line_count += file_metrics['lines']
             metrics.class_count += file_metrics['classes']
@@ -94,8 +94,8 @@ class PythonAnalyzer:
         skip_dirs = {'venv', '.venv', '__pycache__', 'node_modules', '.git'}
         return any(part in skip_dirs for part in file_path.parts)
     
-    def _analyze_file(self, file_path: Path) -> Dict:
-        """Analyze a single Python file"""
+    def _analyse_file(self, file_path: Path) -> Dict:
+        """Analyse a single Python file"""
         result = {
             'lines': 0,
             'classes': 0,
@@ -127,8 +127,8 @@ class PythonAnalyzer:
         
         return result
     
-    def _analyze_structure(self, base_path: Path) -> Dict:
-        """Analyze the directory structure"""
+    def _analyse_structure(self, base_path: Path) -> Dict:
+        """Analyse the directory structure"""
         structure = {
             'has_tests': False,
             'has_docs': False,
@@ -161,7 +161,6 @@ class PythonAnalyzer:
         """Get a few representative code samples"""
         samples = []
         priority_files = ['main.py', 'app.py', 'models.py', 'views.py']
-        
         # Try to get priority files first
         for pattern in priority_files:
             if len(samples) >= max_samples:
