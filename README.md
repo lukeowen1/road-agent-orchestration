@@ -1,20 +1,19 @@
-# Python Codebase C4 Evaluator
+# ROAD: Rapid Onboarding Agent for Developers
+## Step 1: Evaluate whether a codebase is simple enough to be visualised by an LLM adhering to C4 Architecture diagram standards.
 
 A clean, modular tool that evaluates if a Python codebase is simple enough for AI-generated C4 architecture diagrams.
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 codebase-evaluator/
-├── analyzer.py     # Analyzes Python code (150 lines)
-├── evaluator.py    # LLM evaluation logic (100 lines)
-├── workflow.py     # LangGraph orchestration (80 lines)
-└── main.py         # Entry point (60 lines)
+├── codebase_analyser.py     # Analyses Python code 
+├── codebase_evaluator.py    # LLM evaluation logic 
+├── workflow.py     # LangGraph orchestration 
+└── main.py         # Entry point 
 ```
 
-**Total: ~400 lines** (down from 900!)
-
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Install Dependencies
 
@@ -31,10 +30,10 @@ export OPENAI_API_KEY="sk-..."
 ### 3. Run Evaluation
 
 ```bash
-python main.py /path/to/your/python/project
+python main.py /path/to/your/python/codebase
 ```
 
-## 📊 How It Works
+## How It Works
 
 ```mermaid
 graph LR
@@ -67,7 +66,7 @@ graph LR
    - Input validation
    - Result formatting
 
-## 📝 Example Output
+## Example Output
 
 ```
 🔍 Evaluating: /path/to/project
@@ -77,25 +76,25 @@ graph LR
                     EVALUATION COMPLETE
 ═══════════════════════════════════════════════════════════════
 
-📁 Codebase: /path/to/project
+Codebase: /path/to/project
 
-📊 Metrics:
-   • Files: 25
-   • Lines: 2,500
-   • Frameworks: FastAPI, SQLAlchemy
+Metrics:
+• Files: 25
+• Lines: 2,500
+• Frameworks: FastAPI, SQLAlchemy
 
-🎯 Decision:
-   • Complexity: SIMPLE
-   • Score: 3.5/10
-   • Can Generate C4: ✅ YES
+Decision:
+• Complexity: SIMPLE
+• Score: 3.5/10
+• Can Generate C4: YES
 
-📝 Reasoning:
+Reasoning:
 This is a well-structured FastAPI application with clear boundaries.
 Single service architecture with standard patterns makes it suitable
 for automated C4 diagram generation.
 ```
 
-## 🔧 Customization
+## Customization
 
 ### Use Different LLM Model
 
@@ -122,21 +121,21 @@ if isinstance(node, ast.AsyncFunctionDef):
     result['async_functions'] += 1
 ```
 
-## 🎯 Use Cases
+## Use Cases
 
-✅ **Good for:**
+**Good for:**
 - Single service APIs
 - Small to medium libraries
 - Monolithic applications < 10k lines
 - Clear architectural patterns
 
-❌ **Not suitable for:**
+**Not suitable for:**
 - Large microservice systems
 - Highly coupled legacy code
 - Multi-language projects
 - > 50k lines of code
 
-## 🤝 Integration
+## Integration
 
 ### Use in Python Code
 
@@ -171,7 +170,7 @@ if decision['can_use_llm']:
     c4_diagrams = generate_c4_diagrams(result['analysis'])
 ```
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 | Issue | Solution |
 |-------|----------|
@@ -180,13 +179,13 @@ if decision['can_use_llm']:
 | No Python Files | Check path and ensure `.py` files exist |
 | JSON Parse Error | LLM response format issue, check prompt |
 
-## 📈 Performance
+## Performance
 
 - **Analysis Time**: 1-3 seconds
 - **LLM Call**: 2-5 seconds  
 - **Total**: 3-8 seconds
 - **Cost**: $0.002-$0.005 per evaluation (GPT-4)
 
-## 📄 License
+## License
 
 MIT
