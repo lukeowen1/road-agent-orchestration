@@ -3,11 +3,13 @@
 ## Project Structure
 
 ```
-codebase-evaluator/
-├── codebase_analyser.py     # Analyses Python code 
-├── codebase_evaluator.py    # LLM evaluation logic 
-├── workflow.py     # LangGraph orchestration 
-└── main.py         # Entry point 
+road-agent-orchestration/
+    evaluator/
+        ├── codebase_analyser.py     # Analyses Python code 
+        ├── codebase_evaluator.py    # LLM evaluation logic 
+        ├── workflow.py     # LangGraph orchestration 
+    ── main.py         # Entry point
+    ── requirements.txt # Requirements file
 ```
 
 ## Installation
