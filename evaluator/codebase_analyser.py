@@ -4,6 +4,7 @@ A script to analyse Python codebases and extracts metrics such as total files, c
 import ast
 from pathlib import Path
 from typing import Dict, List, Set
+import yaml
 from dataclasses import dataclass, field
 
 
@@ -31,17 +32,16 @@ class CodebaseMetrics:
 
 class PythonAnalyser:
     """Analyzes Python codebases"""
+
+    def __init__(self, config_path: str = "config.yaml"):
+        """Iniitalise with config"""
+        with open(config_path, 'r') as f:
+            self.config = yaml.safe_load(f)
     
-    # Common Python frameworks
-    FRAMEWORKS = {
-        'flask': 'Flask',
-        'django': 'Django',
-        'fastapi': 'FastAPI',
-        'pandas': 'Pandas',
-        'numpy': 'NumPy',
-        'pytest': 'pytest',
-        'sqlalchemy': 'SQLAlchemy',
-    }
+        # extract framework mappings
+        self.frameworks = {}
+        for category in self.config['frameworks'].values():
+            self.frameworks.update(category)
     
     def analyse_codebase(self, path: str) -> Dict:
         """
@@ -75,7 +75,7 @@ class PythonAnalyser:
         
         # Detect frameworks from imports
         for imp in metrics.imports:
-            for framework_key, framework_name in self.FRAMEWORKS.items():
+            for framework_key, framework_name in self.frameworks.items():
                 if framework_key in imp.lower():
                     if framework_name not in metrics.frameworks:
                         metrics.frameworks.append(framework_name)
@@ -91,7 +91,7 @@ class PythonAnalyser:
     
     def _should_skip(self, file_path: Path) -> bool:
         """Check if we should skip this file/directory"""
-        skip_dirs = {'venv', '.venv', '__pycache__', 'node_modules', '.git'}
+        skip_dirs = set(self.config['analysis']['skip_directories'])
         return any(part in skip_dirs for part in file_path.parts)
     
     def _analyse_file(self, file_path: Path) -> Dict:
@@ -144,7 +144,7 @@ class PythonAnalyser:
             structure['has_docs'] = True
         
         # Find entry points
-        for pattern in ['main.py', 'app.py', '__main__.py', 'run.py']:
+        for pattern in self.config['analysis']['entry_point_patterns']:
             for entry in base_path.rglob(pattern):
                 if not self._should_skip(entry):
                     structure['entry_points'].append(str(entry.relative_to(base_path)))
@@ -160,7 +160,8 @@ class PythonAnalyser:
     def _get_code_samples(self, base_path: Path, max_samples: int = 3) -> List[Dict]:
         """Get a few representative code samples"""
         samples = []
-        priority_files = ['main.py', 'app.py', 'models.py', 'views.py']
+        priority_files = self.config['analysis']['sample_priority_files']
+        max_lines = self.config['analysis']['max_preview_lines']
         # Try to get priority files first
         for pattern in priority_files:
             if len(samples) >= max_samples:
@@ -172,7 +173,7 @@ class PythonAnalyser:
                     
                 try:
                     with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
-                        lines = f.readlines()[:50]  # First 50 lines
+                        lines = f.readlines()[:max_lines]  # First 50 lines
                         samples.append({
                             'file': str(file_path.relative_to(base_path)),
                             'preview': ''.join(lines)

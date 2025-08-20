@@ -1,0 +1,168 @@
+# Configuration for Python Codebase C4 Evaluator
+
+# LLM Configuration
+llm:
+  model: "gpt-4"  # Options: gpt-3.5-turbo, gpt-4, gpt-4-turbo-preview
+  temperature: 0.1
+  max_tokens: 1000
+
+# Complexity Thresholds
+complexity:
+  simple:
+    max_files: 50
+    max_lines: 5000
+    description: "Single service, clear structure, standard patterns"
+  moderate:
+    max_files: 150
+    max_lines: 20000
+    description: "Few services, standard frameworks, mostly clear boundaries"
+  complex:
+    description: "Multiple services, many integrations, unclear boundaries"
+
+# Analysis Settings
+analysis:
+  # Directories to skip during analysis
+  skip_directories:
+    - "venv"
+    - ".venv"
+    - "__pycache__"
+    - "node_modules"
+    - ".git"
+    - "dist"
+    - "build"
+    - ".pytest_cache"
+    - ".tox"
+    - "htmlcov"
+    - ".coverage"
+  
+  # File patterns to identify as entry points
+  entry_point_patterns:
+    - "main.py"
+    - "app.py"
+    - "__main__.py"
+    - "run.py"
+    - "manage.py"
+    - "wsgi.py"
+    - "asgi.py"
+    - "cli.py"
+    - "server.py"
+  
+  # Priority files for code sampling
+  sample_priority_files:
+    - "main.py"
+    - "app.py"
+    - "models.py"
+    - "views.py"
+    - "routes.py"
+    - "schemas.py"
+    - "services.py"
+    - "handlers.py"
+  
+  # Maximum lines to preview from each file
+  max_preview_lines: 50
+  
+  # Maximum number of code samples to extract
+  max_code_samples: 3
+
+# Framework Detection
+frameworks:
+  # Mapping of package names to framework names
+  web:
+    flask: "Flask"
+    django: "Django"
+    fastapi: "FastAPI"
+    starlette: "Starlette"
+    tornado: "Tornado"
+    aiohttp: "aiohttp"
+    pyramid: "Pyramid"
+    bottle: "Bottle"
+    sanic: "Sanic"
+  
+  data_science:
+    pandas: "Pandas"
+    numpy: "NumPy"
+    scikit-learn: "Scikit-learn"
+    tensorflow: "TensorFlow"
+    torch: "PyTorch"
+    keras: "Keras"
+  
+  database:
+    sqlalchemy: "SQLAlchemy"
+    pymongo: "MongoDB"
+    redis: "Redis"
+    psycopg2: "PostgreSQL"
+    mysql: "MySQL"
+  
+  testing:
+    pytest: "pytest"
+    unittest: "unittest"
+    nose: "nose"
+    mock: "mock"
+  
+  async:
+    asyncio: "asyncio"
+    celery: "Celery"
+    dramatiq: "Dramatiq"
+    rq: "RQ"
+  
+  api:
+    pydantic: "Pydantic"
+    marshmallow: "Marshmallow"
+    rest_framework: "Django REST"
+    graphene: "GraphQL"
+
+# Output Settings
+output:
+  # Show verbose output
+  verbose: true
+  
+  # Save results to JSON file
+  save_json: false
+  json_filename: "evaluation_results.json"
+  
+  # Summary format
+  show_emoji: true
+  show_reasoning: true
+  show_confidence: true
+
+# Prompts
+prompts:
+  system_message: |
+    You are an expert architect evaluating if a Python codebase 
+    is simple enough for AI-generated C4 diagrams.
+    
+    Consider:
+    - Simple: < {simple_max_files} files, clear structure, single service
+    - Moderate: {simple_max_files}-{moderate_max_files} files, few services, standard patterns  
+    - Complex: > {moderate_max_files} files, microservices, unclear boundaries
+    
+    Respond with JSON:
+    {{
+        "complexity_level": "simple|moderate|complex",
+        "complexity_score": 0-10,
+        "can_use_llm": true|false,
+        "reasoning": "explanation",
+        "confidence": 0-1
+    }}
+  
+  evaluation_template: |
+    Python Codebase Analysis:
+    
+    Metrics:
+    - Files: {files}
+    - Lines: {lines}
+    - Classes: {classes}
+    - Functions: {functions}
+    - Frameworks: {frameworks}
+    
+    Structure:
+    - Has tests: {has_tests}
+    - Entry points: {entry_points}
+    - Packages: {packages} packages found
+    
+    Code Sample from {sample_file}:
+    ```python
+    {code_preview}
+    ```
+    
+    Question: Can an LLM effectively generate C4 diagrams for this codebase?

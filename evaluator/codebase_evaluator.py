@@ -3,6 +3,7 @@ evaluator.py - Uses LLM to evaluate if codebase is suitable for C4 generation
 """
 import json
 from typing import Dict, Optional
+import yaml
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 
@@ -10,8 +11,19 @@ from langchain_openai import ChatOpenAI
 class ComplexityEvaluator:
     """Evaluates codebase complexity using LLM"""
     
-    def __init__(self, llm: Optional[ChatOpenAI] = None):
+    def __init__(self, llm: Optional[ChatOpenAI] = None, config_path: str = "config.yaml"):
         """Initialize with an LLM instance"""
+        with open(config_path, 'r') as f:
+            self.config = yaml.safe_load(f)
+
+        if llm is None: 
+            llm_config = self.config['llm']
+            llm = ChatOpenAI(
+                model=llm_config['model'],
+                temperature=llm_config['temperature'],
+                max_tokens=llm_config['max_tokens']
+            )
+
         self.llm = llm or ChatOpenAI(model="gpt-4", temperature=0.1)
     
     def evaluate(self, analysis: Dict) -> Dict:
@@ -42,47 +54,25 @@ class ComplexityEvaluator:
         structure = analysis['structure']
         samples = analysis['samples']
         
-        system_message = """You are an expert architect evaluating if a Python codebase 
-        is simple enough for AI-generated C4 diagrams.
-        
-        Consider:
-        - Simple: < 50 files, clear structure, single service
-        - Moderate: 50-150 files, few services, standard patterns  
-        - Complex: > 150 files, microservices, unclear boundaries
-        
-        Respond with JSON:
-        {
-            "complexity_level": "simple|moderate|complex",
-            "complexity_score": 0-10,
-            "can_use_llm": true|false,
-            "reasoning": "explanation",
-            "confidence": 0-1
-        }"""
-        
-        # Build analysis summary
-        summary = f"""
-        Python Codebase Analysis:
-        
-        Metrics:
-        - Files: {metrics['files']}
-        - Lines: {metrics['lines']}
-        - Classes: {metrics['classes']}
-        - Functions: {metrics['functions']}
-        - Frameworks: {', '.join(metrics['frameworks']) if metrics['frameworks'] else 'None detected'}
-        
-        Structure:
-        - Has tests: {structure['has_tests']}
-        - Entry points: {', '.join(structure['entry_points'][:3]) if structure['entry_points'] else 'None found'}
-        - Packages: {len(structure['packages'])} packages found
-        
-        Code Sample from {samples[0]['file'] if samples else 'N/A'}:
-        ```python
-        {samples[0]['preview'][:500] if samples else 'No samples available'}
-        ```
-        
-        Question: Can an LLM effectively generate C4 diagrams for this codebase?
-        """
-        
+        system_message = self.config['prompts']['system_message'].format(
+            simple_max_files=self.config['complexity']['simple']['max_files'],
+            moderate_max_files=self.config['complexity']['moderate']['max_files']
+        )
+
+        # Build analysis summary using template
+        summary = self.config['prompts']['evaluation_template'].format(
+            files=metrics['files'],
+            lines=metrics['lines'],
+            classes=metrics['classes'],
+            functions=metrics['functions'],
+            frameworks=', '.join(metrics['frameworks']) if metrics['frameworks'] else 'None detected',
+            has_tests=structure['has_tests'],
+            entry_points=', '.join(structure['entry_points'][:3]) if structure['entry_points'] else 'None found',
+            packages=len(structure['packages']),
+            sample_file=samples[0]['file'] if samples else 'N/A',
+            code_preview=samples[0]['preview'][:500] if samples else 'No samples available'
+        )
+
         return [
             SystemMessage(content=system_message),
             HumanMessage(content=summary)
