@@ -4,6 +4,7 @@ main.py - Run the codebase evaluator
 import sys
 import os
 from pathlib import Path
+from evaluator.c4_generator import generate_c4_from_codebase
 from evaluator.workflow import create_workflow
 
 
@@ -43,6 +44,26 @@ def evaluate_codebase(path: str, verbose: bool = True):
     if verbose:
         print(result['summary'])
     
+    # If suitable, generate C4 DSL
+    decision = result.get('decision') if isinstance(result, dict) else None
+    print(f"[DEBUG] decision: {decision} (type: {type(decision)})")  # Add this line
+    if decision and isinstance(decision, dict) and decision.get('can_use_llm'):
+        c4_result = generate_c4_from_codebase(
+            codebase_path=str(codebase_path.absolute()),
+            decision=decision,
+            project_name=codebase_path.name,
+            config_path="config.yaml",
+            save_dsl=True
+        )
+        if verbose:
+            print("\nC4 DSL Generation Result:")
+            print("=" * 60)
+            if isinstance(c4_result, dict) and c4_result.get("success", True):
+                print(c4_result.get("dsl", "No DSL generated."))
+            else:
+                print(f"Error: {c4_result.get('error') if isinstance(c4_result, dict) else 'No result returned.'}")
+    
+    
     return result['decision']
 
 
@@ -63,9 +84,9 @@ def main():
     try:
         path = sys.argv[1]
         decision = evaluate_codebase(path)
-        
+        print(f"[DEBUG] Final decision: {decision} (type: {type(decision)})") 
         # Exit with appropriate code
-        sys.exit(0 if decision.get('can_use_llm') else 1)
+        sys.exit(0 if decision and isinstance(decision, dict) and decision.get('can_use_llm') else 1)
         
     except Exception as e:
         print(f"Error: {e}")
