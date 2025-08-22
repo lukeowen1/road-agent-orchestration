@@ -114,6 +114,49 @@ def run_specific_test_file(test_file):
     except Exception as e:
         print(f"Error occurred while running tests: {e}")
         return 1
+    
+def main():
+    """Main entry point"""
+    import argparse
+    
+    parser = argparse.ArgumentParser(description='Run unit tests')
+    parser.add_argument(
+        'test_file',
+        nargs='?',
+        help='Specific test file to run (e.g., test_analyzer.py)'
+    )
+    parser.add_argument(
+        '--coverage',
+        '-c',
+        action='store_true',
+        help='Run tests with coverage report'
+    )
+    parser.add_argument(
+        '--failfast',
+        '-f',
+        action='store_true',
+        help='Stop on first failure'
+    )
+    
+    args = parser.parse_args()
+    
+    # Set failfast if requested
+    if args.failfast:
+        unittest.TestResult.failfast = True
+    
+    # Run appropriate test command
+    if args.test_file:
+        # Run specific test file
+        exit_code = run_specific_test_file(args.test_file)
+    elif args.coverage:
+        # Run all tests with coverage
+        exit_code = run_with_coverage()
+    else:
+        # Run all tests
+        exit_code = run_all_tests()
+    
+    sys.exit(exit_code)
 
-if __name__ == "__main__":
-    run_all_tests()
+
+if __name__ == '__main__':
+    main()

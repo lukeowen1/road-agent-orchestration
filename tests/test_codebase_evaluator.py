@@ -32,7 +32,7 @@ class TestComplexityEvaluator(unittest.TestCase):
             },
             'prompts': {
                 'system_message': 'You are an evaluator. Simple: < {simple_max_files} files',
-                'evaluation_template': 'Files: {files}, Lines: {lines}, Frameworks: {frameworks}'
+                'evaluation_template': 'Files: {files}, Lines: {lines}, Frameworks: {frameworks}, Entry points: {entry_points}'
             }
         }
         

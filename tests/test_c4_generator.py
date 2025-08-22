@@ -129,14 +129,14 @@ class TestC4DiagramGenerator(unittest.TestCase):
         )
         
         response = '''Here's the DSL:
-        ```dsl
-        workspace {
-            model {
-                user = person "User"
-            }
-        }
-        ```
-        That's the complete DSL.'''
+```dsl
+workspace {
+    model {
+        user = person "User"
+    }
+}
+```
+That's the complete DSL.'''
         
         result = generator._extract_dsl(response)
         

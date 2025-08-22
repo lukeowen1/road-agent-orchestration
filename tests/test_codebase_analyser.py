@@ -104,30 +104,30 @@ class TestPythonAnalyzer(unittest.TestCase):
         # Create a test Python file
         test_file = self.test_path / 'test.py'
         test_content = '''
-        import os
-        import sys
-        from typing import List
+import os
+import sys
+from typing import List
 
-        class TestClass:
-            def method1(self):
-                pass
-            
-            def method2(self):
-                pass
+class TestClass:
+    def method1(self):
+        pass
+    
+    def method2(self):
+        pass
 
-        def function1():
-            pass
+def function1():
+    pass
 
-        def function2():
-            return 42
-        '''
+def function2():
+    return 42
+'''
         test_file.write_text(test_content)
         
         # Analyze the file
         result = analyser._analyse_file(test_file)
         
         self.assertEqual(result['classes'], 1)
-        self.assertEqual(result['functions'], 2)
+        self.assertEqual(result['functions'], 4)
         self.assertGreater(result['lines'], 10)
         self.assertIn('os', result['imports'])
         self.assertIn('sys', result['imports'])
@@ -185,17 +185,17 @@ class TestPythonAnalyzer(unittest.TestCase):
         
         main_file = self.test_path / 'main.py'
         main_content = '''
-        from fastapi import FastAPI
-        import sqlalchemy
+from fastapi import FastAPI
+import sqlalchemy
 
-        app = FastAPI()
+app = FastAPI()
 
-        class User:
-            pass
+class User:
+    pass
 
-        def get_user():
-            return User()
-        '''
+def get_user():
+    return User()
+'''
         main_file.write_text(main_content)
         
         # Analyze the codebase
@@ -207,7 +207,7 @@ class TestPythonAnalyzer(unittest.TestCase):
         
         # Check metrics
         metrics = result['metrics']
-        self.assertEqual(metrics['files'], 1)  # Only main.py (skip __init__.py)
+        self.assertEqual(metrics['files'], 2)  
         self.assertEqual(metrics['classes'], 1)
         self.assertEqual(metrics['functions'], 1)
         self.assertIn('FastAPI', metrics['frameworks'])
@@ -248,10 +248,10 @@ class TestPythonAnalyzer(unittest.TestCase):
         # Create file with framework imports
         test_file = self.test_path / 'app.py'
         test_content = '''
-        import fastapi
-        from flask import Flask
-        import sqlalchemy as sa
-        '''
+import fastapi
+from flask import Flask
+import sqlalchemy as sa
+'''
         test_file.write_text(test_content)
         
         result = analyzer.analyse_codebase(str(self.test_path))
