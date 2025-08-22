@@ -6,6 +6,20 @@ llm:
   temperature: 0.1
   max_tokens: 1000
 
+# Structurizr Configuration
+structurizr:
+  # Get these from https://structurizr.com/help/web-api
+  api_key: "5b74376d-c9ff-49ad-acb4-a73f900e9b7c"  # Your API key
+  api_secret: "ea9f2108-8c46-4ee3-a05e-fee59da6e97f"  # Your API secret
+  workspace_id: 105540  # Your workspace ID (integer)
+
+  # Visualization settings
+  auto_open_browser: true
+  default_view: "diagrams"  # diagrams, explore, documentation
+  
+  # Export settings
+  export_format: "png"  # png, svg, plantuml, mermaid
+
 # Complexity Thresholds
 complexity:
   simple:
