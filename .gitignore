@@ -3,3 +3,4 @@
 evaluator/__pycache__
 .DS_Store
 /venv
+tests/__pycache__
