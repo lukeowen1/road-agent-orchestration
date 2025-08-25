@@ -24,7 +24,7 @@ class DSLUploadAgent:
         """
         self.config_path = config_path
         self.verbose = verbose
-        self.upload_script = "upload_dsl"  # Your upload script name
+        self.upload_script = "cli/upload_dsl"  # Your upload script name
         
         # Load configuration
         self.config = self._load_config()

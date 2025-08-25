@@ -18,7 +18,7 @@ except ImportError:
 
 # Import the DSL upload agent if available
 try:
-    from dsl_upload_agent import DSLUploadAgent
+    from agents.dsl_upload_agent import DSLUploadAgent
     AGENT_AVAILABLE = True
 except ImportError:
     AGENT_AVAILABLE = False
