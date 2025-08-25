@@ -16,6 +16,13 @@ except ImportError:
     STRUCTURIZR_AVAILABLE = False
     print("Note: Structurizr client not found. DSL will be generated but not uploaded.")
 
+# Import the DSL upload agent if available
+try:
+    from dsl_upload_agent import DSLUploadAgent
+    AGENT_AVAILABLE = True
+except ImportError:
+    AGENT_AVAILABLE = False
+    print("Note: DSL upload agent not found. DSL will be generated but not uploaded.")
 
 def evaluate_codebase(path: str, verbose: bool = True, upload_to_structurizr: bool = False):
     """
@@ -72,7 +79,7 @@ def evaluate_codebase(path: str, verbose: bool = True, upload_to_structurizr: bo
         )
         
         # Add c4_result to the state for potential Structurizr upload
-        result['c4_result'] = c4_result
+        result['c4_result'] = c4_result if c4_result else {'dsl': None, 'success': False}
         
         if verbose and isinstance(c4_result, dict):
             if c4_result.get("success"):
@@ -80,18 +87,13 @@ def evaluate_codebase(path: str, verbose: bool = True, upload_to_structurizr: bo
                 if c4_result.get("dsl_file"):
                     print(f"Saved to: {c4_result['dsl_file']}")
                 
-                # Upload to Structurizr if requested
-                if upload_to_structurizr and STRUCTURIZR_AVAILABLE and c4_result.get("dsl"):
-                    upload_dsl_to_structurizr_wrapper(
-                        c4_result["dsl"],
-                        codebase_path.name,
-                        verbose
-                    )
-                elif upload_to_structurizr and not STRUCTURIZR_AVAILABLE:
-                    print("Structurizr upload requested but client not available")
-                    print("Install with: pip install requests")
-                elif upload_to_structurizr:
-                    print("No DSL content to upload")
+                # Use agent to upload if requested
+                if upload_to_structurizr and AGENT_AVAILABLE:
+                    upload_with_agent(c4_result, verbose)
+                elif upload_to_structurizr and not AGENT_AVAILABLE:
+                    print("Upload agent not available")
+                    print("Ensure dsl_upload_agent.py is in the same directory")
+                    manual_upload_instructions()
             else:
                 print(f"Error: {c4_result.get('error', 'Failed to generate DSL')}")
     else:
@@ -99,15 +101,70 @@ def evaluate_codebase(path: str, verbose: bool = True, upload_to_structurizr: bo
             reason = "evaluation failed" if not decision else "codebase too complex"
             print(f"Skipping C4 generation - {reason}")
         
-        # Add empty c4_result to prevent KeyError in workflow
-        result['c4_result'] = {
-            'dsl': None,
-            'success': False,
-            'error': 'C4 generation skipped'
-        }
+        # Ensure c4_result exists
+        if 'c4_result' not in result:
+            result['c4_result'] = {
+                'dsl': None,
+                'success': False,
+                'error': 'C4 generation skipped'
+            }
     
     return result.get('decision', {})
 
+def upload_with_agent(c4_result: dict, verbose: bool = True):
+    """
+    Use the DSL upload agent to upload to Structurizr
+    
+    Args:
+        c4_result: Result from C4 generation
+        verbose: Print progress messages
+    """
+    if verbose:
+        print("Activating DSL Upload Agent...")
+        print("=" * 60)
+    
+    try:
+        # Initialize the agent
+        agent = DSLUploadAgent(verbose=verbose)
+        
+        # Get the DSL file path
+        dsl_file = c4_result.get("dsl_file")
+        if not dsl_file:
+            # Try to construct it from project name
+            project_name = c4_result.get("project_name", "system")
+            dsl_file = f"{project_name.lower().replace(' ', '_')}_c4.dsl"
+        
+        # Check if file exists
+        dsl_path = Path(dsl_file)
+        if not dsl_path.exists():
+            if verbose:
+                print(f"DSL file not found: {dsl_file}")
+                manual_upload_instructions()
+            return
+        
+        # Upload using the agent
+        upload_result = agent.upload_dsl_file(dsl_path)
+        
+        if not upload_result.get("success"):
+            if verbose:
+                print("Agent upload failed")
+                if upload_result.get("error"):
+                    print(f"Error: {upload_result['error']}")
+                manual_upload_instructions()
+                
+    except Exception as e:
+        if verbose:
+            print(f"Agent error: {str(e)}")
+            manual_upload_instructions()
+
+def manual_upload_instructions():
+    """Print manual upload instructions"""
+    print("Manual Upload Instructions:")
+    print("1. Copy the content of the generated .dsl file")
+    print("2. Go to https://structurizr.com/dsl")
+    print("3. Paste the content and click 'Render'")
+    print("Or use the upload script directly:")
+    print("python upload_dsl.py <your_file>_c4.dsl")
 
 def upload_dsl_to_structurizr_wrapper(dsl_content: str, project_name: str, verbose: bool = True):
     """
@@ -208,7 +265,7 @@ Examples:
   # Basic evaluation
   python main.py ./my_project
   
-  # With Structurizr upload
+  # With Structurizr upload via Agent
   python main.py ./my_project --upload
   
   # Quiet mode
