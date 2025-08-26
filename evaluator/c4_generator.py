@@ -94,97 +94,7 @@ class C4DiagramGenerator:
     def _create_c4_prompt(self, codebase_content: Dict[str, str], project_name: str) -> list:
         """Create the prompt with the entire codebase"""
         
-        system_prompt = """You are an expert software architect who creates C4 architecture diagrams.
-        You will be given the COMPLETE source code of a Python application.
-        Analyse the code and generate a comprehensive Structurizr DSL file that accurately models the application architecture.
-
-        **IMPORTANT STRUCTURIZR DSL RULES:**
-        - Do NOT use variable assignments for containers or components (e.g., do NOT write `foo = container ...`).
-        - Define all containers INSIDE their parent softwareSystem block.
-        - Define all components INSIDE their parent container block.
-        - Define relationships between components INSIDE the container block.
-        - Do NOT reference components or containers at the top level.
-        - Only use valid Structurizr DSL syntax.
-
-        **EXAMPLE:**
-
-        workspace {
-            model {
-                user = person "User"
-                mainSystem = softwareSystem "<Main System Name>" {
-                    # Define containers found in the codebase
-                    containerA = container "<Container A Name>" {
-                        # Define components found in this container
-                        componentA = component "<Component A Name>" {
-                            description "<What this component does>"
-                        }
-                        componentB = component "<Component B Name>" {
-                            description "<What this component does>"
-                        }
-                        # Relationships between components (use identifiers)
-                        componentA -> componentB "<Relationship description>"
-                    }
-                    containerB = container "<Container B Name>" {
-                        # ...more components...
-                    }
-                    # Relationships between containers (use identifiers)
-                    containerA -> containerB "<Relationship description>"
-                }
-                # Define external systems/services if found
-                externalSystem = softwareSystem "<External System Name>"
-                database = softwareSystem "<Database Name>"
-                # Relationships from user and containers to systems/services
-                user -> mainSystem "<How user interacts>"
-                containerA -> externalSystem "<Relationship description>"
-                containerA -> database "<Relationship description>"
-            }
-            views {
-                systemContext mainSystem {
-                    include *
-                    autoLayout
-                }
-                container mainSystem {
-                    include *
-                    autoLayout
-                }
-                # For each container, add a component view
-                component containerA {
-                    include *
-                    autoLayout
-                }
-                styles {
-                    element "Software System" {
-                        background #1168bd
-                        color #ffffff
-                    }
-                    element "Container" {
-                        background #438dd5
-                        color #ffffff
-                    }
-                    element "Component" {
-                        background #85bbf0
-                        color #000000
-                    }
-                    element "Person" {
-                        shape person
-                        background #08427b
-                        color #ffffff
-                    }
-                    element "Database" {
-                        shape cylinder
-                    }
-                    element "External System" {
-                        background #999999
-                        color #ffffff
-                    }
-                }
-            }
-        }
-
-        Base your architecture ENTIRELY on the actual code provided, not on assumptions.
-        Generate ONLY the Structurizr DSL code, starting with 'workspace' and ending with the closing brace.
-        Make sure the DSL is complete, valid, and ready to use.
-        """
+        system_prompt = self.config['prompts']['create_dsl_prompt']
         # Build the complete codebase message
         codebase_message = f"Project Name: {project_name}\n\n"
         codebase_message += "=" * 60 + "\n"
@@ -199,15 +109,7 @@ class C4DiagramGenerator:
             codebase_message += "\n```\n\n"
         
         codebase_message += "=" * 60 + "\n"
-        codebase_message += """
-        Based on the complete codebase above, generate a Structurizr DSL that:
-        1. Accurately represents the architecture found in the code
-        2. Includes all major components and their relationships
-        3. Uses meaningful names from the actual code
-        4. Creates clear System Context, Container, and Component views
-        5. Is syntactically correct and complete
-
-        Generate the Structurizr DSL:"""
+        codebase_message += self.config['prompts']['codebase_message']
         
         return [
             SystemMessage(content=system_prompt),
@@ -252,7 +154,12 @@ class C4DiagramGenerator:
     
 class StructurizrDSLValidator:
     """Validates Structurizr DSL output"""
-    
+
+    def __init__(self, config_path="config.yaml"): 
+        """Initilaise with LLM and configuration"""
+        with open(config_path, 'r') as f:
+            self.config = yaml.safe_load(f)
+
     @staticmethod
     def validate_dsl(dsl: str) -> Dict:
         """
@@ -302,8 +209,7 @@ class StructurizrDSLValidator:
         
         return validation
     
-    @staticmethod
-    def enhance_dsl(dsl: str, add_styles: bool = True) -> str:
+    def enhance_dsl(self, dsl: str, add_styles: bool = True) -> str:
         """
         Enhance DSL with default styles if missing
         
@@ -316,34 +222,8 @@ class StructurizrDSLValidator:
         """
         # Add default styles if not present
         if add_styles and "styles" not in dsl and "views" in dsl:
-            styles = """
-            styles {
-                element "Software System" {
-                    background #1168bd
-                    color #ffffff
-                }
-                element "Container" {
-                    background #438dd5
-                    color #ffffff
-                }
-                element "Component" {
-                    background #85bbf0
-                    color #000000
-                }
-                element "Person" {
-                    shape person
-                    background #08427b
-                    color #ffffff
-                }
-                element "Database" {
-                    shape cylinder
-                }
-                element "External System" {
-                    background #999999
-                    color #ffffff
-                }
-            }"""
-            
+            styles = self.config["prompts"]["styles"]
+
             # Find the views closing brace and insert styles after it
             views_end = dsl.rfind("views")
             if views_end != -1:
