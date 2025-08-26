@@ -3,10 +3,10 @@ main.py - Run the codebase evaluator with optional Structurizr upload
 """
 import sys
 import os
-import yaml
 from pathlib import Path
 from evaluator.c4_generator import generate_c4_from_codebase
 from evaluator.workflow import create_workflow
+import argparse
 
 # Import Structurizr components if available
 try:
@@ -166,96 +166,9 @@ def manual_upload_instructions():
     print("Or use the upload script directly:")
     print("python upload_dsl.py <your_file>_c4.dsl")
 
-def upload_dsl_to_structurizr_wrapper(dsl_content: str, project_name: str, verbose: bool = True):
-    """
-    Wrapper to upload DSL to Structurizr
-    
-    Args:
-        dsl_content: The DSL content to upload
-        project_name: Project name for display
-        verbose: Print progress messages
-    """
-    if verbose:
-        print("Attempting Structurizr upload...")
-        print("=" * 60)
-    
-    # Check if Structurizr is configured
-    config_path = "config.yaml"
-    if Path(config_path).exists():
-        with open(config_path, 'r') as f:
-            config = yaml.safe_load(f)
-            structurizr_config = config.get('structurizr', {})
-        
-        if all([
-            structurizr_config.get('api_key'),
-            structurizr_config.get('api_secret'),
-            structurizr_config.get('workspace_id')
-        ]):
-            try:
-                # Upload to Structurizr
-                result = upload_dsl_to_structurizr(
-                    dsl_content=dsl_content,
-                    config_path=config_path,
-                    open_browser=structurizr_config.get('auto_open_browser', True)
-                )
-                
-                if result.get('upload_status', {}).get('success'):
-                    print("Upload successful!")
-                    if result.get('urls'):
-                        print(f"View at: {result['urls'].get('workspace', 'Structurizr workspace')}")
-                else:
-                    print("Manual upload instructions:")
-                    instructions = result.get('instructions', [])
-                    if instructions:
-                        for instruction in instructions:
-                            print(f"{instruction}")
-                    else:
-                        print("1. Copy the generated .dsl file content")
-                        print("2. Go to https://structurizr.com/dsl")
-                        print("3. Paste and click 'Render'")
-                        
-            except Exception as e:
-                if verbose:
-                    print(f"Upload error: {str(e)}")
-                    print("You can manually upload the DSL:")
-                    print("1. Copy the generated .dsl file content")
-                    print("2. Go to https://structurizr.com/dsl")
-                    print("3. Paste and click 'Render'")
-        else:
-            if verbose:
-                missing = []
-                if not structurizr_config.get('api_key'):
-                    missing.append('api_key')
-                if not structurizr_config.get('api_secret'):
-                    missing.append('api_secret')
-                if not structurizr_config.get('workspace_id'):
-                    missing.append('workspace_id')
-                
-                print(f"Structurizr not fully configured (missing: {', '.join(missing)})")
-                print("To enable automatic upload:")
-                print("1. Get API credentials from https://structurizr.com/help/web-api")
-                print("2. Add to config.yaml:")
-                print("structurizr:")
-                print("api_key: 'your-key'")
-                print("api_secret: 'your-secret'")
-                print("workspace_id: 12345")
-                print("For now, you can manually upload:")
-                print("1. Copy the generated .dsl file content")
-                print("2. Go to https://structurizr.com/dsl")
-                print("3. Paste and click 'Render'")
-    else:
-        if verbose:
-            print("config.yaml not found")
-            print("Manual upload instructions:")
-            print("1. Copy the generated .dsl file content")
-            print("2. Go to https://structurizr.com/dsl")
-            print("3. Paste and click 'Render'")
-
 
 def main():
     """Command-line interface"""
-    import argparse
-    
     # Set up argument parser for better CLI experience
     parser = argparse.ArgumentParser(
         description='Evaluate Python codebase and generate C4 architecture diagrams',

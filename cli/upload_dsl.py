@@ -2,12 +2,12 @@
 upload_dsl.py - Simple CLI tool to upload DSL files to Structurizr using the Structurizr CLI
 """
 import sys
-import os
 import yaml
 import webbrowser
 import subprocess
 from pathlib import Path
 from typing import Optional
+import argparse
 
 
 def upload_dsl_with_cli(
@@ -113,7 +113,6 @@ def upload_dsl_file(
 
 def main():
     """Main CLI entry point"""
-    import argparse
 
     parser = argparse.ArgumentParser(
         description='Upload Structurizr DSL files using the Structurizr CLI',

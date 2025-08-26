@@ -3,7 +3,7 @@ A script to generate DSL for a codebase deemed simple from our evaluator script.
 """
 
 import yaml 
-from typing import Dict, List, Optional 
+from typing import Dict, Optional 
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 from pathlib import Path

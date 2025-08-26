@@ -9,12 +9,7 @@ from langchain_openai import ChatOpenAI
 from evaluator.codebase_analyser import PythonAnalyser
 from evaluator.codebase_evaluator import ComplexityEvaluator
 from evaluator.c4_generator import C4DiagramGenerator, StructurizrDSLValidator
-from structurizr_client import (
-    StructurizrClient,
-    DSLToStructurizr,
-    StructurizrVisualizer,
-    upload_dsl_to_structurizr
-)
+from structurizr_client import (upload_dsl_to_structurizr)
 
 class WorkflowState(Dict[str, Any]):
     """State that flows through the workflow"""
@@ -240,7 +235,7 @@ def should_upload_structurizr(state: Dict[str, Any]) -> Literal["upload_structur
 def create_workflow():
     """Create the evaluation workflow"""
     workflow = StateGraph(WorkflowState)
-    
+
     # Add nodes
     workflow.add_node("analyse", analyse_node)
     workflow.add_node("evaluate", evaluate_node)

@@ -8,9 +8,10 @@ import json
 import requests
 import yaml
 from datetime import datetime
-from pathlib import Path
-from typing import Dict, Optional, Tuple
-from urllib.parse import urlparse
+from typing import Dict
+import re
+import sys
+import webbrowser
 
 
 class StructurizrClient:
@@ -129,20 +130,6 @@ class StructurizrClient:
         
         return response
     
-    def get_workspace(self) -> Dict:
-        """
-        Get workspace details
-        
-        Returns:
-            Workspace data
-        """
-        path = f"/workspace/{self.workspace_id}"
-        response = self._make_request("GET", path)
-        
-        if response.status_code == 200:
-            return response.json()
-        else:
-            raise Exception(f"Failed to get workspace: {response.status_code} - {response.text}")
     
     def upload_workspace(self, workspace_json: Dict) -> Dict:
         """
@@ -161,26 +148,6 @@ class StructurizrClient:
             return {"success": True, "message": "Workspace uploaded successfully"}
         else:
             raise Exception(f"Failed to upload workspace: {response.status_code} - {response.text}")
-    
-    def lock_workspace(self) -> Dict:
-        """Lock the workspace to prevent concurrent modifications"""
-        path = f"/workspace/{self.workspace_id}/lock"
-        response = self._make_request("PUT", path)
-        
-        if response.status_code in [200, 204]:
-            return {"success": True, "locked": True}
-        else:
-            raise Exception(f"Failed to lock workspace: {response.status_code}")
-    
-    def unlock_workspace(self) -> Dict:
-        """Unlock the workspace"""
-        path = f"/workspace/{self.workspace_id}/lock"
-        response = self._make_request("DELETE", path)
-        
-        if response.status_code in [200, 204]:
-            return {"success": True, "locked": False}
-        else:
-            raise Exception(f"Failed to unlock workspace: {response.status_code}")
 
 
 class DSLToStructurizr:
@@ -213,7 +180,6 @@ class DSLToStructurizr:
         # This is a placeholder that creates a basic structure
         
         # Extract workspace name from DSL
-        import re
         workspace_match = re.search(r'workspace\s+"([^"]+)"', dsl)
         name = workspace_match.group(1) if workspace_match else "System"
         
@@ -329,8 +295,6 @@ class StructurizrVisualizer:
         Args:
             view: Which view to open (diagrams, explore, etc.)
         """
-        import webbrowser
-        
         urls = self.get_diagram_urls()
         url = urls.get(view, urls["workspace"])
         
@@ -422,7 +386,6 @@ def upload_dsl_to_structurizr(
 
 
 if __name__ == "__main__":
-    import sys
     
     if len(sys.argv) < 2:
         print("Usage: python structurizr_client.py <dsl_file>")

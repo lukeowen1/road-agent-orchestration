@@ -3,12 +3,14 @@ dsl_upload_agent.py - Agent that connects DSL generation to Structurizr upload
 """
 import subprocess
 import sys
-import os
 import time
 import yaml
 from pathlib import Path
 from typing import Dict, Optional, Any
 from datetime import datetime
+from evaluator.c4_generator import generate_c4_from_codebase
+from evaluator.workflow import create_workflow
+import argparse
 
 
 class DSLUploadAgent:
@@ -309,8 +311,6 @@ class DSLUploadOrchestrator:
         Returns:
             Complete result dictionary
         """
-        from evaluator.c4_generator import generate_c4_from_codebase
-        from evaluator.workflow import create_workflow
         
         # Step 1: Evaluate codebase
         print("Step 1: Evaluating codebase...")
@@ -357,9 +357,7 @@ class DSLUploadOrchestrator:
 
 
 def main():
-    """CLI for the DSL upload agent"""
-    import argparse
-    
+    """CLI for the DSL upload agent"""  
     parser = argparse.ArgumentParser(
         description='DSL Upload Agent - Automatically upload generated DSL to Structurizr',
         formatter_class=argparse.RawDescriptionHelpFormatter,
