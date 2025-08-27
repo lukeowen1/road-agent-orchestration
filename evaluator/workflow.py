@@ -5,11 +5,19 @@ import yaml
 from typing import Dict, Any, Literal
 from langgraph.graph import StateGraph, END
 from langchain_openai import ChatOpenAI
+import os
+from langchain_core.tracers import LangChainTracer
+from langchain.callbacks.manager import CallbackManager
 
 from evaluator.codebase_analyser import PythonAnalyser
 from evaluator.codebase_evaluator import ComplexityEvaluator
 from evaluator.c4_generator import C4DiagramGenerator, StructurizrDSLValidator
 from structurizr_client import (upload_dsl_to_structurizr)
+
+# Set up tracing
+os.environ["LANGCHAIN_TRACING_V2"] = "true"
+os.environ["LANGCHAIN_PROJECT"] = "road-agent-orchestration"
+
 
 class WorkflowState(Dict[str, Any]):
     """State that flows through the workflow"""
@@ -235,6 +243,11 @@ def should_upload_structurizr(state: Dict[str, Any]) -> Literal["upload_structur
 def create_workflow():
     """Create the evaluation workflow"""
     workflow = StateGraph(WorkflowState)
+
+    # Add tracing callback
+    tracer = LangChainTracer(project_name="road-agent-orchestration")
+    callback_manager = CallbackManager([tracer])
+    
 
     # Add nodes
     workflow.add_node("analyse", analyse_node)
