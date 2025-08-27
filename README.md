@@ -74,7 +74,7 @@ road-agent-orchestration/
     ``` 
 - **Install pip / check the latest version is running**
     ```sh
-    python3 -m pip install --upgrade pip`
+    python3 -m pip install --upgrade pip
     python3 -m pip --version
     ```
 - **Install external packages and libraries**
