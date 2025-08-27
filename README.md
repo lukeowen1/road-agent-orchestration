@@ -26,7 +26,7 @@ To address this, we have set out to build an agentic Python toolchain that can a
 
 
 ## Features 
-- **Intelligent Analysis**: Uses AST parsing to analyze Python code structure
+- **Intelligent Analysis**: Uses AST parsing to analyse Python code structure
 - **Complexity Evaluation**: LLM evaluates if codebase is suitable for automated diagram generation
 - **C4 Diagram Generation**: Creates complete Structurizr DSL from actual code
 - **Automatic Upload**: Uploads generated diagrams to Structurizr cloud
@@ -101,7 +101,7 @@ graph LR
     D -->|No| F[Skip]
     E --> G[DSL File]
     G --> H[Structurizr Upload]
-    H --> I[Visualization]
+    H --> I[Visualisation]
 ```
 
 ## Components
@@ -284,7 +284,7 @@ workspace "FastAPI Application" {
 python -m pytest
 
 # Run specific test file
-python -m pytest tests/test_analyzer.py
+python -m pytest tests/test_analyser.py
 
 # Run with coverage
 python -m pytest --cov=evaluator --cov-report=html
@@ -321,7 +321,7 @@ complexity:
 
 Extend `codebase_analyser.py`:
 ```python
-# Add new metrics to _analyze_file()
+# Add new metrics to _analyse_file()
 if isinstance(node, ast.AsyncFunctionDef):
     result['async_functions'] += 1
 ```
