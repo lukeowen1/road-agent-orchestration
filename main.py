@@ -8,15 +8,6 @@ from evaluator.c4_generator import generate_c4_from_codebase
 from evaluator.workflow import create_workflow
 import argparse
 
-# Import Structurizr components if available
-try:
-    from structurizr_client import upload_dsl_to_structurizr
-    STRUCTURIZR_AVAILABLE = True
-except ImportError:
-    STRUCTURIZR_AVAILABLE = False
-    print("Note: Structurizr client not found. DSL will be generated but not uploaded.")
-
-# Import the DSL upload agent if available
 try:
     from agents.dsl_upload_agent import DSLUploadAgent
     AGENT_AVAILABLE = True
@@ -286,8 +277,8 @@ any API setup!
             print("\n" + "=" * 60)
             if exit_code == 0:
                 print("Pipeline completed successfully!")
-                if args.upload and STRUCTURIZR_AVAILABLE:
-                    print("   Check your Structurizr workspace or use manual upload")
+                if args.upload:
+                    print("Check your Structurizr workspace or use manual upload")
             else:
                 print("Pipeline completed - codebase too complex for C4 generation")
         

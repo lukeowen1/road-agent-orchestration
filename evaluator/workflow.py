@@ -12,12 +12,10 @@ from langchain.callbacks.manager import CallbackManager
 from evaluator.codebase_analyser import PythonAnalyser
 from evaluator.codebase_evaluator import ComplexityEvaluator
 from evaluator.c4_generator import C4DiagramGenerator, StructurizrDSLValidator
-from structurizr_client import (upload_dsl_to_structurizr)
 
 # Set up tracing
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
 os.environ["LANGCHAIN_PROJECT"] = "road-agent-orchestration"
-
 
 class WorkflowState(Dict[str, Any]):
     """State that flows through the workflow"""
@@ -154,30 +152,6 @@ def upload_structurizr_node(state: Dict[str, Any]) -> Dict[str, Any]:
         }
         return state
     
-    print("Uploading to Structurizr...")
-    
-    # Upload DSL
-    result = upload_dsl_to_structurizr(
-        dsl_content=dsl_content,
-        api_key=structurizr_config['api_key'],
-        api_secret=structurizr_config['api_secret'],
-        workspace_id=structurizr_config['workspace_id'],
-        config_path=config_path,
-        open_browser=structurizr_config.get('auto_open_browser', True)
-    )
-    
-    state['structurizr_result'] = result
-    
-    if result.get('upload_status', {}).get('success'):
-        print("Upload successful!")
-        print(f"View at: {result['urls']['workspace']}")
-    else:
-        print("Manual upload instructions:")
-        for instruction in result.get('instructions', []):
-            print(f"{instruction}")
-    
-    return state
-
 def skip_upload_node(state: Dict[str, Any]) -> Dict[str, Any]:
     """Node 4b: Skip upload if no DSL generated"""
     print("Skipping Structurizr upload - no DSL to upload")
