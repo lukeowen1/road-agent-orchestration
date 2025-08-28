@@ -53,7 +53,6 @@ road-agent-orchestration/
 │       ├── test_c4_generator.py
 │       ├── test_codebase_analyser.py
 │       └── test_codebase_evaluator.py
-├── structurizr_client.py # Initialise Structurizr API
 └── requirements.txt # Requirements file
 ```
 
@@ -160,7 +159,7 @@ analysis:
 ```
 
 ## Structurizr Setup
-### Option 1: Automatic Upload (API)
+### Option 1: Automatic Upload (CLI)
 1. Create Structurizr account: https://structurizr.com/signup
 2. Create workspace and note the ID
 3. Get API credentials from workspace settings
