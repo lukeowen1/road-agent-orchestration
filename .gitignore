@@ -5,3 +5,4 @@ evaluator/__pycache__
 /venv
 tests/__pycache__
 agents/__pycache__
+cli/__pycache__

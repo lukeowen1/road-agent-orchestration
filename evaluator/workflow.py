@@ -6,6 +6,7 @@ from typing import Dict, Any, Literal
 from langgraph.graph import StateGraph, END
 from langchain_openai import ChatOpenAI
 import os
+from pathlib import Path
 from langchain_core.tracers import LangChainTracer
 from langchain.callbacks.manager import CallbackManager
 
@@ -16,15 +17,6 @@ from evaluator.c4_generator import C4DiagramGenerator, StructurizrDSLValidator
 # Set up tracing
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
 os.environ["LANGCHAIN_PROJECT"] = "road-agent-orchestration"
-
-class WorkflowState(Dict[str, Any]):
-    """State that flows through the workflow"""
-    codebase_path: str
-    analysis: Dict[str, Any]
-    decision: Dict[str, Any]
-    summary: str
-    pass
-   
 
 def analyse_node(state: Dict[str, Any]) -> Dict[str, Any]:
     """Node 1: Analyze the codebase"""
@@ -151,6 +143,46 @@ def upload_structurizr_node(state: Dict[str, Any]) -> Dict[str, Any]:
             'message': 'No DSL generated to upload'
         }
         return state
+
+    print("Uploading to Structurizr...")
+    print("=" * 60)
+
+    # Save DSL file
+    project_name = Path(state['codebase_path']).name
+    dsl_file = f"{project_name.lower().replace(' ', '_')}_c4.dsl"
+    Path(dsl_file).write_text(dsl_content)
+    
+    try:
+        # Call your working upload script directly
+        from cli.upload_dsl import StructurizrClient
+
+        upload_client = StructurizrClient(config_path=config_path)
+        
+        success = upload_client.upload_dsl_file(
+            dsl_file=dsl_file,
+            config_path=config_path,
+            open_browser=structurizr_config.get('auto_open_browser', True)
+        )
+        
+        if success:
+            workspace_url = f"https://structurizr.com/workspace/{structurizr_config['workspace_id']}"
+            state['structurizr_result'] = {
+                'upload_status': {'success': True},
+                'urls': {'workspace': workspace_url}
+            }
+        else:
+            state['structurizr_result'] = {
+                'upload_status': {'success': False},
+                'message': 'Upload failed'
+            }
+    except Exception as e:
+        print(f"Upload failed: {e}")
+        state['structurizr_result'] = {
+            'upload_status': {'success': False},
+            'error': str(e)
+        }
+
+    return state
     
 def skip_upload_node(state: Dict[str, Any]) -> Dict[str, Any]:
     """Node 4b: Skip upload if no DSL generated"""
@@ -204,19 +236,31 @@ def summary_node(state: Dict[str, Any]) -> Dict[str, Any]:
 
 def should_generate_c4(state: Dict[str, Any]) -> Literal["generate_c4", "skip_c4"]:
     """Conditional edge: decide whether to generate C4 diagrams"""
-    if (state.get('decision') or {}).get('can_use_llm', False):
+    decision = state.get('decision', {})
+    can_generate = decision.get('can_use_llm', False)
+    
+    if can_generate:
+        print("Routing to generate_c4")
         return "generate_c4"
-    return "skip_c4"
+    else:
+        print("DEBUG: Routing to skip_c4")  
+        return "skip_c4"
 
 def should_upload_structurizr(state: Dict[str, Any]) -> Literal["upload_structurizr", "skip_upload"]:
     """Decide whether to upload to Structurizr"""
-    if state.get('c4_result', {}).get('dsl'):
+    c4_result = state.get('c4_result', {})
+    dsl_content = c4_result.get('dsl')
+    
+    if dsl_content:
+        print("Routing to upload_structurizr")
         return "upload_structurizr"
-    return "skip_upload"
+    else:
+        print("Routing to skip_upload")
+        return "skip_upload"
 
 def create_workflow():
     """Create the evaluation workflow"""
-    workflow = StateGraph(WorkflowState)
+    workflow = StateGraph(Dict[str, Any])
 
     # Add tracing callback
     tracer = LangChainTracer(project_name="road-agent-orchestration")
