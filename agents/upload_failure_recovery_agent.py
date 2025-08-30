@@ -36,7 +36,7 @@ class UploadFailureRecoveryAgent:
         
         if any(phrase in error_lower for phrase in ["command not found", "structurizr-cli", "no such file"]):
             return "missing_cli"
-        elif any(phrase in error_lower for phrase in ["unauthorized", "401", "invalid key", "authentication"]):
+        elif any(phrase in error_lower for phrase in ["unauthorized", "401", "invalid key", "authentication", "incorrect api key"]):
             return "auth_error" 
         elif any(phrase in error_lower for phrase in ["network", "timeout", "connection", "dns"]):
             return "network_error"

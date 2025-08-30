@@ -64,7 +64,7 @@ class StructurizrClient:
             "-secret", api_secret,
             "-w", dsl_file
         ]
-        print(f"Running: {' '.join(cmd)}")
+        print(f"Running: {cli_path} push -id {workspace_id} -key ***** -secret ***** -w {dsl_file}")
         result = subprocess.run(cmd, capture_output=True, text=True)
         print(result.stdout)
         if result.returncode == 0:
@@ -77,6 +77,10 @@ class StructurizrClient:
         else:
             print("Upload failed!")
             print(result.stderr)
+
+            # Store the CLI error for recovery agent access
+            self.last_cli_error = result.stderr
+
             return False
 
 
@@ -115,33 +119,19 @@ class StructurizrClient:
 
         # Check if we have credentials
         if all([api_key, api_secret, workspace_id]):
-            return self.upload_dsl_with_cli(
+            success = self.upload_dsl_with_cli(
                 dsl_file=dsl_file,
                 api_key=api_key,
                 api_secret=api_secret,
                 workspace_id=workspace_id,
                 open_browser=open_browser
             )
-        else:
-            print("Structurizr API credentials not configured")
-            print("Option 1: Manual Upload")
-            print("=" * 40)
-            print("1. Copy your DSL content")
-            print("2. Go to: https://structurizr.com/dsl")
-            print("3. Paste and click 'Render'")
+        
+            # Store the CLI error for recovery agent access
+            if not success and hasattr(self, 'last_cli_error'):
+                self.cli_error = self.last_cli_error
 
-            if open_browser:
-                response = input("\nOpen Structurizr DSL editor in browser? (y/n): ")
-                if response.lower() == 'y':
-                    webbrowser.open("https://structurizr.com/dsl")
-
-            print("Option 2: Configure API")
-            print("=" * 40)
-            print("1. Get credentials from https://structurizr.com/help/web-api")
-            print("2. Add to config.yaml or use command line arguments:")
-            print("python upload_dsl.py file.dsl --api-key KEY --api-secret SECRET --workspace-id ID")
-
-            return False
+            return success
 
 
 def main():

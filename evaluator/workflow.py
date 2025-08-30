@@ -171,17 +171,59 @@ def upload_structurizr_node(state: Dict[str, Any]) -> Dict[str, Any]:
                 'urls': {'workspace': workspace_url}
             }
         else:
+            # Capture error details for recovery agent
+            cli_error = getattr(upload_client, 'last_cli_error', 'Upload failed via CLI')
+            state['upload_error'] = cli_error
+            state['dsl_file'] = dsl_file
             state['structurizr_result'] = {
                 'upload_status': {'success': False},
                 'message': 'Upload failed'
             }
     except Exception as e:
+        # Capture error details for recovery agent  
+        state['upload_error'] = str(e)
+        state['dsl_file'] = dsl_file
         print(f"Upload failed: {e}")
         state['structurizr_result'] = {
             'upload_status': {'success': False},
             'error': str(e)
         }
 
+    return state
+
+def recovery_agent_node(state: Dict[str, Any]) -> Dict[str, Any]:
+    """Node: Attempt to recover from upload failures"""
+    print("Upload failed - attempting recovery...")
+    
+    from agents.upload_failure_recovery_agent import UploadFailureRecoveryAgent
+    
+    recovery_agent = UploadFailureRecoveryAgent()
+    
+    # Get the upload error details from the previous upload attempt
+    upload_error = state.get('upload_error', 'Upload failed')
+    print(f"Recovery agent received error: '{upload_error}'")
+    dsl_file = Path(state.get('dsl_file', 'unknown.dsl'))
+    
+    with open(state.get('config_path', 'config.yaml'), 'r') as f:
+        config = yaml.safe_load(f)
+    
+    recovery_result = recovery_agent.diagnose_and_retry(
+        error_output=upload_error,
+        dsl_file=dsl_file,
+        config=config
+    )
+    
+    state['recovery_result'] = recovery_result
+    
+    if recovery_result['recovery_successful']:
+        print(f"Recovery successful using: {recovery_result.get('method', 'unknown')}")
+        # Update the structurizr_result to reflect success
+        state['structurizr_result']['upload_status']['success'] = True
+    else:
+        print("Recovery failed. Manual steps:")
+        for instruction in recovery_result.get('instructions', []):
+            print(f"  {instruction}")
+    
     return state
     
 def skip_upload_node(state: Dict[str, Any]) -> Dict[str, Any]:
@@ -257,6 +299,12 @@ def should_upload_structurizr(state: Dict[str, Any]) -> Literal["upload_structur
     else:
         print("Routing to skip_upload")
         return "skip_upload"
+    
+def should_attempt_recovery(state: Dict[str, Any]) -> Literal["recovery", "summary"]:
+    upload_result = state.get('structurizr_result', {})
+    if not upload_result.get('upload_status', {}).get('success', False):
+        return "recovery"
+    return "summary"
 
 def create_workflow():
     """Create the evaluation workflow"""
@@ -274,6 +322,7 @@ def create_workflow():
     workflow.add_node("skip_c4", skip_c4_node)
     workflow.add_node("upload_structurizr", upload_structurizr_node)
     workflow.add_node("skip_upload", skip_upload_node)
+    workflow.add_node("recovery_agent", recovery_agent_node)
     workflow.add_node("summary", summary_node)
 
     # Define flow
@@ -290,20 +339,30 @@ def create_workflow():
         }
     )
 
-    # Conditional: Upload to Structurizr or skip
+    # recovery agent
     workflow.add_conditional_edges(
-        "generate_c4",
-        should_upload_structurizr,
-        {
-            "upload_structurizr": "upload_structurizr",
-            "skip_upload": "skip_upload"
-        }
+    "generate_c4",
+    should_upload_structurizr,
+    {
+        "upload_structurizr": "upload_structurizr",
+        "skip_upload": "skip_upload"
+    }
+    )
+
+    # recovery routing after upload attempts
+    workflow.add_conditional_edges(
+    "upload_structurizr",
+    should_attempt_recovery,
+    {
+        "recovery": "recovery_agent",
+        "summary": "summary"
+    }
     )
 
     # all paths lead to summary
     workflow.add_edge("skip_c4", "summary")
-    workflow.add_edge("upload_structurizr", "summary")
     workflow.add_edge("skip_upload", "summary")
+    workflow.add_edge("recovery_agent", "summary")
     workflow.add_edge("summary", END)
     
     return workflow.compile()
