@@ -8,13 +8,6 @@ from evaluator.c4_generator import generate_c4_from_codebase
 from evaluator.workflow import create_workflow
 import argparse
 
-try:
-    from agents.dsl_upload_agent import DSLUploadAgent
-    AGENT_AVAILABLE = True
-except ImportError:
-    AGENT_AVAILABLE = False
-    print("Note: DSL upload agent not found. DSL will be generated but not uploaded.")
-
 def evaluate_codebase(path: str, verbose: bool = True, upload_to_structurizr: bool = False):
     """
     Evaluate a Python codebase for C4 diagram generation
@@ -77,13 +70,6 @@ def evaluate_codebase(path: str, verbose: bool = True, upload_to_structurizr: bo
                 print(f"C4 DSL generated successfully!")
                 if c4_result.get("dsl_file"):
                     print(f"Saved to: {c4_result['dsl_file']}")
-                # # Use agent to upload if requested
-                # if upload_to_structurizr and AGENT_AVAILABLE:
-                #     upload_with_agent(c4_result, verbose)
-                # elif upload_to_structurizr and not AGENT_AVAILABLE:
-                #     print("Upload agent not available")
-                #     print("Ensure dsl_upload_agent.py is in the same directory")
-                #     manual_upload_instructions()
             else:
                 print(f"Error: {c4_result.get('error', 'Failed to generate DSL')}")
     else:
@@ -101,51 +87,6 @@ def evaluate_codebase(path: str, verbose: bool = True, upload_to_structurizr: bo
     
     return result.get('decision', {})
 
-# def upload_with_agent(c4_result: dict, verbose: bool = True):
-#     """
-#     Use the DSL upload agent to upload to Structurizr
-    
-#     Args:
-#         c4_result: Result from C4 generation
-#         verbose: Print progress messages
-#     """
-#     if verbose:
-#         print("Activating DSL Upload Agent...")
-#         print("=" * 60)
-    
-#     try:
-#         # Initialize the agent
-#         agent = DSLUploadAgent(verbose=verbose)
-        
-#         # Get the DSL file path
-#         dsl_file = c4_result.get("dsl_file")
-#         if not dsl_file:
-#             # Try to construct it from project name
-#             project_name = c4_result.get("project_name", "system")
-#             dsl_file = f"{project_name.lower().replace(' ', '_')}_c4.dsl"
-        
-#         # Check if file exists
-#         dsl_path = Path(dsl_file)
-#         if not dsl_path.exists():
-#             if verbose:
-#                 print(f"DSL file not found: {dsl_file}")
-#                 manual_upload_instructions()
-#             return
-        
-#         # Upload using the agent
-#         upload_result = agent.upload_dsl_file(dsl_path)
-        
-#         if not upload_result.get("success"):
-#             if verbose:
-#                 print("Agent upload failed")
-#                 if upload_result.get("error"):
-#                     print(f"Error: {upload_result['error']}")
-#                 manual_upload_instructions()
-                
-#     except Exception as e:
-#         if verbose:
-#             print(f"Agent error: {str(e)}")
-#             manual_upload_instructions()
 
 def manual_upload_instructions():
     """Print manual upload instructions"""
